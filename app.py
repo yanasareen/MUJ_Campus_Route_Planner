@@ -111,6 +111,28 @@ def compare_all():
 def health():
     return jsonify({"status": "healthy", "service": "Smart Campus AI Planner"})
 
+def is_port_in_use(port):
+    import socket
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        return s.connect_ex(('127.0.0.1', port)) == 0
+
+def find_available_port(preferred_port=5001):
+    port = preferred_port
+    while is_port_in_use(port) and port < preferred_port + 20:
+        port += 1
+    return port
+
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5001))
-    app.run(host="0.0.0.0", port=port, debug=False)
+    import threading, webbrowser
+    target_port = int(os.environ.get("PORT", 5001))
+    if "PORT" not in os.environ and is_port_in_use(target_port):
+        target_port = find_available_port(target_port)
+    
+    url = f"http://127.0.0.1:{target_port}"
+    threading.Timer(1.2, lambda: webbrowser.open(url)).start()
+    
+    print(f"\n=======================================================")
+    print(f"  🚀 Apex Smart Campus AI Route Planner is Live!")
+    print(f"  👉 Opening in Browser: {url}")
+    print(f"=======================================================\n")
+    app.run(host="0.0.0.0", port=target_port, debug=False)
