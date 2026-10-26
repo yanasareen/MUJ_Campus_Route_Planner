@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Apex Smart Campus — AI Route Planner & Live GPS</title>
+  
+  <!-- Web App & PWA Meta -->
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="theme-color" content="#090d16">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Campus Planner">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Feather Icons -->
+  <script src="/static/js/feather.min.js"></script>
+  
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="theme-dark weather-clear">
+  
+  <!-- Top Navigation & Global HUD -->
+  <header class="top-nav">
+    <div class="nav-brand">
+      <div class="brand-radar-icon">
+        <span class="radar-ping"></span>
+        <i data-feather="crosshair"></i>
+      </div>
+      <div class="brand-text">
+        <div class="brand-title">APEX <span class="brand-accent">CAMPUS ROUTE PLANNER</span></div>
+        <div class="brand-subtitle">AI & Soft Computing Engine • Multi-Floor Architectural GIS</div>
+      </div>
+    </div>
+
+    <!-- Live Telemetry Status Pills -->
+    <div class="nav-telemetry">
+      <div class="status-pill live-indicator">
+        <span class="pulsing-dot"></span>
+        <span class="pill-label">GPS STATUS: <strong id="gpsStatus">ACTIVE LIVE</strong></span>
+      </div>
+      <div class="status-pill sat-indicator">
+        <i data-feather="cpu"></i>
+        <span class="pill-label">ALGORITHM: <strong id="activeAlgoBadge">A* (EUCLIDEAN)</strong></span>
+      </div>
+    </div>
+
+    <!-- Top Action Controls -->
+    <div class="nav-controls">
+      <div class="control-group">
+        <button id="btnWeatherToggle" class="icon-btn" title="Toggle Weather (Clear / Rain / Heatwave / Night)">
+          <i data-feather="sun" id="weatherIcon"></i>
+          <span class="btn-tooltip" id="weatherTooltip">Weather: Clear</span>
+        </button>
+        <button id="btnAudioToggle" class="icon-btn active" title="Toggle Tactical Audio Effects">
+          <i data-feather="volume-2" id="audioIcon"></i>
+          <span class="btn-tooltip">Sound FX: ON</span>
+        </button>
+      </div>
+
+      <!-- Floor Blueprint Modal Trigger -->
+      <button id="btnOpenFloorBlueprint" class="btn-benchmark" style="background: rgba(56, 189, 248, 0.12); color: #38bdf8; border-color: rgba(56, 189, 248, 0.3);">
+        <i data-feather="layers"></i>
+        <span>Floor Blueprints</span>
+      </button>
+
+      <!-- Compare Benchmark Modal Trigger -->
+      <button id="btnOpenCompare" class="btn-benchmark">
+        <i data-feather="bar-chart-2"></i>
+        <span>AI Benchmark (6)</span>
+      </button>
+
+      <!-- Campus Directory Trigger -->
+      <button id="btnToggleDirectory" class="icon-btn" title="Campus Directory & Landmarks">
+        <i data-feather="grid"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Viewport Layout -->
+  <main class="app-viewport">
+    
+    <!-- Canvas Container for Interactive Campus Map -->
+    <div class="map-viewport-container" id="mapContainer">
+      <canvas id="campusCanvas"></canvas>
+      
+      <!-- Canvas Floating Toolbars -->
+      <div class="canvas-controls">
+        <button id="btnZoomIn" class="canvas-tool-btn" title="Zoom In">
+          <i data-feather="zoom-in"></i>
+        </button>
+        <button id="btnZoomOut" class="canvas-tool-btn" title="Zoom Out">
+          <i data-feather="zoom-out"></i>
+        </button>
+        <button id="btnResetView" class="canvas-tool-btn" title="Reset Campus View">
+          <i data-feather="maximize-2"></i>
+        </button>
+        <button id="btnFollowAvatar" class="canvas-tool-btn active" title="Follow Moving Person / Auto-Pan">
+          <i data-feather="navigation"></i>
+        </button>
+      </div>
+
+      <!-- PROMINENT HEURISTIC MATHEMATICAL FUNCTION FLOATING HUD -->
+      <div class="canvas-heuristic-hud glass-panel" id="heuristicHud">
+        <div class="heuristic-hud-header">
+          <div class="heuristic-badge">
+            <span class="pulsing-dot-cyan"></span>
+            <span>HEURISTIC EVALUATION: f(n) = g(n) + h(n)</span>
+          </div>
+          <div class="heuristic-formula-title" id="hudFormulaTitle">A* Search</div>
+        </div>
+        <div class="heuristic-formula-grid">
+          <div class="h-stat-box g-box">
+            <div class="h-stat-label">g(n) PAST COST</div>
+            <div class="h-stat-val" id="hudGVal">0.0 <span class="unit">m</span></div>
+            <div class="h-stat-sub">Distance from start</div>
+          </div>
+          <div class="h-operator">+</div>
+          <div class="h-stat-box h-box">
+            <div class="h-stat-label">h(n) HEURISTIC</div>
+            <div class="h-stat-val" id="hudHVal">0.0 <span class="unit">m</span></div>
+            <div class="h-stat-sub">Distance to goal</div>
+          </div>
+          <div class="h-operator">=</div>
+          <div class="h-stat-box f-box">
+            <div class="h-stat-label">f(n) TOTAL EVAL</div>
+            <div class="h-stat-val" id="hudFVal">0.0 <span class="unit">m</span></div>
+            <div class="h-stat-sub">Priority queue cost</div>
+          </div>
+        </div>
+        <div class="heuristic-equation-banner" id="hudLiveEquation">
+          f(Current) = g(0.0m) + h(0.0m) = 0.0m
+        </div>
+      </div>
+
+      <!-- Campus Compass Rose & Coordinates Readout -->
+      <div class="canvas-telemetry-hud">
+        <div class="compass-widget">
+          <div class="compass-dial" id="compassDial">
+            <span class="compass-arrow"></span>
+          </div>
+          <div class="compass-value" id="headingDegrees">014° NNE</div>
+        </div>
+        <div class="coords-widget">
+          <div class="coords-line" id="hudCoordsLat">LAT 42.3601° N</div>
+          <div class="coords-line" id="hudCoordsLon">LON 71.0942° W</div>
+          <div class="coords-scale" id="hudElevation">GROUND LEVEL</div>
+        </div>
+      </div>
+
+      <!-- Hover / Tap Landmark Detail Tooltip with GN and HN -->
+      <div class="landmark-tooltip" id="landmarkTooltip">
+        <div class="tooltip-header">
+          <div class="tooltip-badge" id="ttCategory">Academic Block</div>
+          <div class="tooltip-title" id="ttTitle">AB1</div>
+        </div>
+        <div class="tooltip-desc" id="ttDesc">Academic Block with 3 Floors, Lifts, and Balcony.</div>
+        
+        <!-- GN, HN, FN values in tooltip for every location -->
+        <div class="tooltip-heuristics-box" id="ttHeuristicsBox">
+          <div class="tt-h-row"><span>g(n) from Start:</span> <strong id="ttGVal">0.0 m</strong></div>
+          <div class="tt-h-row"><span>h(n) to Goal:</span> <strong id="ttHVal">0.0 m</strong></div>
+          <div class="tt-h-row highlight"><span>f(n) Total Cost:</span> <strong id="ttFVal">0.0 m</strong></div>
+        </div>
+
+        <div class="tooltip-arch-specs" id="ttArchSpecs"></div>
+        <div class="tooltip-amenities" id="ttAmenities"></div>
+        <div class="tooltip-actions">
+          <button class="tooltip-btn" id="btnSetAsStart">Set Origin</button>
+          <button class="tooltip-btn highlight" id="btnSetAsGoal">Set Destination</button>
+        </div>
+      </div>
+
+      <!-- Weather Atmospheric Particle Canvas Overlay -->
+      <canvas id="weatherFxCanvas" class="weather-fx-layer"></canvas>
+    </div>
+
+    <!-- UNIFIED SINGLE-SCROLL TACTICAL CONTROL PANEL -->
+    <aside class="planner-card glass-panel" id="plannerPanel">
+      
+      <!-- Panel Header -->
+      <div class="panel-header">
+        <div class="panel-drag-handle"></div>
+        <div class="panel-title-row">
+          <div class="title-left">
+            <div class="tracking-indicator-dot"></div>
+            <span class="panel-main-title">CAMPUS GPS TRACKER</span>
+          </div>
+          <div class="title-right">
+            <span class="live-pulse-badge">LIVE TRACKER</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Origin & Destination Selector with Multi-Floor Controls -->
+      <div class="panel-section location-inputs">
+        <div class="input-card">
+          <div class="input-icon-col">
+            <span class="start-dot"></span>
+            <div class="connection-line"></div>
+            <span class="goal-dot"></span>
+          </div>
+          <div class="input-fields-col">
+            
+            <!-- Origin Field & Floor Selection -->
+            <div class="field-wrap">
+              <div class="field-label-row">
+                <label class="field-label">ORIGIN (START LOCATION)</label>
+                <div class="floor-selector-wrap" id="startFloorWrap">
+                  <span class="floor-tag">FLOOR:</span>
+                  <select id="selectStartFloor" class="floor-select">
+                    <option value="1">Floor 1 (Ground)</option>
+                    <option value="2">Floor 2</option>
+                    <option value="3">Floor 3</option>
+                  </select>
+                </div>
+              </div>
+              <select id="selectStart" class="custom-select">
+                <!-- Populated with AB1, AB2, Central Library, etc. -->
+              </select>
+            </div>
+
+            <!-- Destination Field & Floor Selection -->
+            <div class="field-wrap">
+              <div class="field-label-row">
+                <label class="field-label">DESTINATION (GOAL)</label>
+                <div class="floor-selector-wrap" id="goalFloorWrap">
+                  <span class="floor-tag">FLOOR:</span>
+                  <select id="selectGoalFloor" class="floor-select">
+                    <option value="1">Floor 1 (Ground)</option>
+                    <option value="2">Floor 2</option>
+                    <option value="3">Floor 3</option>
+                  </select>
+                </div>
+              </div>
+              <select id="selectGoal" class="custom-select">
+                <!-- Populated -->
+              </select>
+            </div>
+
+          </div>
+          <button id="btnSwapLocations" class="btn-swap" title="Swap Start & Destination">
+            <i data-feather="repeat"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Vertical Transit Architectural Alert (Lifts, Stairs, Balconies) -->
+      <div class="architectural-transit-box" id="architecturalTransitBox">
+        <div class="arch-box-title">
+          <i data-feather="info"></i>
+          <span>BUILDING ARCHITECTURE & VERTICAL TRANSIT</span>
+        </div>
+        <div class="arch-transit-grid">
+          <div class="arch-chip" id="archLiftBadge">
+            <i data-feather="chevrons-up"></i>
+            <span>Lift: <strong id="archLiftSide">Left Wing</strong></span>
+          </div>
+          <div class="arch-chip" id="archStairsBadge">
+            <i data-feather="corner-down-right"></i>
+            <span>Stairs: <strong id="archStairsLocation">Central Staircase</strong></span>
+          </div>
+          <div class="arch-chip" id="archBalconyBadge">
+            <i data-feather="sun"></i>
+            <span>Balcony: <strong id="archBalconyLocation">Floor Balcony</strong></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- EXACT 6 ALGORITHMS (A* Euclidean, A* Manhattan, Dijkstra, BFS, Greedy, DFS) -->
+      <div class="panel-section algo-selector-section">
+        <div class="section-label-row">
+          <span class="section-label">SEARCH STRATEGY (6 ALGORITHMS)</span>
+          <span class="section-tag" id="algoComplexityTag">f(n) = g(n) + h(n)</span>
+        </div>
+        <div class="algo-pills-carousel">
+          <button class="algo-pill active" data-algo="ASTAR_EUC">
+            <span class="pill-title">A* Euclidean</span>
+            <span class="pill-meta">Informed • f = g + h</span>
+          </button>
+          <button class="algo-pill" data-algo="ASTAR_MAN">
+            <span class="pill-title">A* Manhattan</span>
+            <span class="pill-meta">Grid Metric</span>
+          </button>
+          <button class="algo-pill" data-algo="UCS">
+            <span class="pill-title">Dijkstra</span>
+            <span class="pill-meta">Cost Optimal • f = g</span>
+          </button>
+          <button class="algo-pill" data-algo="BFS">
+            <span class="pill-title">BFS</span>
+            <span class="pill-meta">Hop Optimal</span>
+          </button>
+          <button class="algo-pill" data-algo="GBFS">
+            <span class="pill-title">Greedy Best-First</span>
+            <span class="pill-meta">f = h(n)</span>
+          </button>
+          <button class="algo-pill" data-algo="DFS">
+            <span class="pill-title">DFS</span>
+            <span class="pill-meta">Deep Wandering</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Action Section: Start Navigation & Speed Controls -->
+      <div class="panel-section action-section">
+        <button id="btnStartNavigation" class="btn-primary-action">
+          <i data-feather="play"></i>
+          <span id="btnNavText">START LIVE GPS TRACKING</span>
+        </button>
+        <button id="btnPauseNavigation" class="btn-secondary-action" style="display: none;" title="Pause / Resume">
+          <i data-feather="pause"></i>
+        </button>
+        <button id="btnResetNavigation" class="btn-secondary-action" title="Reset Route & Avatar">
+          <i data-feather="rotate-ccw"></i>
+        </button>
+        
+        <!-- Speed Multiplier Buttons -->
+        <div class="speed-control-pills">
+          <button class="speed-pill" data-speed="1">1x</button>
+          <button class="speed-pill active" data-speed="2">2x</button>
+          <button class="speed-pill" data-speed="4">4x</button>
+        </div>
+      </div>
+
+      <!-- Live Mission Status Ribbon -->
+      <div class="panel-section" style="padding-top: 0; padding-bottom: 8px;">
+        <div class="mission-status-ribbon">
+          <div class="status-left">
+            <span class="pulse-beacon"></span>
+            <span class="mission-status-text" id="missionStatusText">READY TO NAVIGATE</span>
+          </div>
+          <div class="status-right" id="missionEtaBadge">ETA: 0 min</div>
+        </div>
+      </div>
+
+      <!-- Telemetry Metrics Grid -->
+      <div class="panel-section" style="padding-top: 0; padding-bottom: 8px;">
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-icon"><i data-feather="activity"></i></div>
+            <div class="metric-info">
+              <div class="metric-val" id="metricSpeed">4.8 <span class="unit">km/h</span></div>
+              <div class="metric-label">WALKING SPEED</div>
+            </div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-icon"><i data-feather="flag"></i></div>
+            <div class="metric-info">
+              <div class="metric-val" id="metricRemainingDist">0 <span class="unit">m</span></div>
+              <div class="metric-label">REMAINING DIST</div>
+            </div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-icon"><i data-feather="layers"></i></div>
+            <div class="metric-info">
+              <div class="metric-val" id="metricNodesExpanded">0 <span class="unit">nodes</span></div>
+              <div class="metric-label">NODES EXPANDED</div>
+            </div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-icon"><i data-feather="clock"></i></div>
+            <div class="metric-info">
+              <div class="metric-val" id="metricExecTime">0.00 <span class="unit">ms</span></div>
+              <div class="metric-label">COMPUTE TIME</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Progress Bar -->
+      <div class="panel-section" style="padding-top: 0; padding-bottom: 10px;">
+        <div class="navigation-progress-wrap">
+          <div class="progress-info-row">
+            <span id="navProgressLabel">Route Progress</span>
+            <span id="navProgressPercent">0%</span>
+          </div>
+          <div class="progress-bar-track">
+            <div class="progress-bar-fill" id="navProgressBar" style="width: 0%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Next Turn / Waypoint Guidance Toast -->
+      <div class="panel-section" style="padding-top: 0; padding-bottom: 10px;">
+        <div class="next-waypoint-card">
+          <div class="waypoint-turn-icon">
+            <i data-feather="corner-up-right" id="turnDirectionIcon"></i>
+          </div>
+          <div class="waypoint-instructions">
+            <div class="next-step-title" id="nextStepTitle">Head towards destination</div>
+            <div class="next-step-sub" id="nextStepSub">Select locations and start tracking</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PROMINENT HEURISTIC BREAKDOWN TABLE FOR EVERY LOCATION -->
+      <div class="panel-section" style="padding-top: 0;">
+        <div class="locations-heuristic-table-card">
+          <div class="lh-table-header">
+            <div class="lh-table-title">
+              <i data-feather="hash"></i>
+              <span>HEURISTIC VALUES FOR EVERY LOCATION: g(n) & h(n)</span>
+            </div>
+            <span class="lh-badge">ALL WAYPOINTS</span>
+          </div>
+          <div class="lh-table-responsive">
+            <table class="lh-table">
+              <thead>
+                <tr>
+                  <th>Location (Node)</th>
+                  <th>Floor</th>
+                  <th>g(n)</th>
+                  <th>h(n)</th>
+                  <th>f(n)</th>
+                  <th>Architecture</th>
+                </tr>
+              </thead>
+              <tbody id="locationsHeuristicTableBody">
+                <!-- Dynamically populated with GN, HN, FN for every location -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Turn-by-Turn Waypoints Timeline -->
+      <div class="panel-section" style="padding-top: 0;">
+        <div class="timeline-container">
+          <div class="timeline-title-row" id="btnToggleTimeline">
+            <span>DETAILED ROUTE TIMELINE & DIRECTIONS</span>
+            <i data-feather="chevron-down" id="timelineChevron"></i>
+          </div>
+          <div class="timeline-steps" id="timelineStepsList">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </div>
+
+    </aside>
+
+  </main>
+
+  <!-- MULTI-FLOOR ARCHITECTURAL BLUEPRINT MODAL -->
+  <div class="modal-backdrop" id="floorBlueprintModal">
+    <div class="modal-dialog glass-panel floor-blueprint-dialog">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <i data-feather="layers"></i>
+          <h2>MULTI-FLOOR BUILDING BLUEPRINT & ARCHITECTURAL SPECS</h2>
+        </div>
+        <button class="modal-close-btn" id="btnCloseFloorBlueprint">
+          <i data-feather="x"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="blueprint-building-picker">
+          <label style="font-size: 11px; font-weight: 700; color: var(--text-muted);">SELECT BUILDING:</label>
+          <div class="building-pills-row" id="blueprintBuildingPills">
+            <button class="bldg-pill active" data-bldg="AB1">AB1</button>
+            <button class="bldg-pill" data-bldg="AB2">AB2</button>
+            <button class="bldg-pill" data-bldg="AB3">AB3</button>
+            <button class="bldg-pill" data-bldg="AB4">AB4</button>
+            <button class="bldg-pill" data-bldg="CENTRAL_LIB">Central Library</button>
+            <button class="bldg-pill" data-bldg="NEW_LIB">New Library</button>
+            <button class="bldg-pill" data-bldg="SEMINAR_HALLS">Seminar Halls</button>
+            <button class="bldg-pill" data-bldg="SPORTS_COMPLEX">Sports Complex</button>
+          </div>
+        </div>
+
+        <!-- Floor Switcher Tabs -->
+        <div class="floor-tabs-row">
+          <button class="floor-tab-btn active" data-floor="1">
+            <i data-feather="chevrons-right"></i>
+            <span>FLOOR 1 (GROUND LEVEL)</span>
+          </button>
+          <button class="floor-tab-btn" data-floor="2">
+            <i data-feather="chevrons-right"></i>
+            <span>FLOOR 2 (ACADEMIC LABS)</span>
+          </button>
+          <button class="floor-tab-btn" data-floor="3">
+            <i data-feather="chevrons-right"></i>
+            <span>FLOOR 3 (ADVANCED SUITES)</span>
+          </button>
+        </div>
+
+        <!-- Detailed Floor Specification Card -->
+        <div class="blueprint-card" id="blueprintCard">
+          <div class="blueprint-card-header">
+            <div class="bldg-title" id="bpBuildingTitle">Academic Block 1 (AB1) — Ground Floor</div>
+            <div class="bldg-lift-tag" id="bpLiftTag">ELEVATOR: LEFT SIDE</div>
+          </div>
+          
+          <div class="blueprint-spec-grid">
+            <div class="spec-card">
+              <div class="spec-icon"><i data-feather="chevrons-up"></i></div>
+              <div class="spec-content">
+                <div class="spec-title">ELEVATOR / LIFT LOCATION</div>
+                <div class="spec-desc" id="bpLiftDesc">High-speed 12-passenger elevator on LEFT side of main foyer.</div>
+              </div>
+            </div>
+            <div class="spec-card">
+              <div class="spec-icon"><i data-feather="corner-down-right"></i></div>
+              <div class="spec-content">
+                <div class="spec-title">STAIRCASES & ESCAPES</div>
+                <div class="spec-desc" id="bpStairsDesc">Main central staircase on left wing; right wing emergency stairs.</div>
+              </div>
+            </div>
+            <div class="spec-card">
+              <div class="spec-icon"><i data-feather="sun"></i></div>
+              <div class="spec-content">
+                <div class="spec-title">BALCONY & OPEN CORRIDORS</div>
+                <div class="spec-desc" id="bpBalconyDesc">Spacious open balcony on Floors 2 & 3 overlooking North Lawn.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="rooms-section">
+            <div class="rooms-section-title">KEY ROOMS, LABS & FACILITIES ON THIS FLOOR:</div>
+            <div class="rooms-chips-list" id="bpRoomsList">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Algorithm Comparison & Benchmark Modal (6 Algorithms) -->
+  <div class="modal-backdrop" id="compareModal">
+    <div class="modal-dialog glass-panel">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <i data-feather="bar-chart-2"></i>
+          <h2>AI SEARCH ALGORITHM BENCHMARK MATRIX (6 ALGORITHMS)</h2>
+        </div>
+        <button class="modal-close-btn" id="btnCloseCompare">
+          <i data-feather="x"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="benchmark-intro">
+          Evaluating all 6 search strategies concurrently over identical origin and destination pairs on the campus topology: A* (Euclidean), A* (Manhattan), Dijkstra (Uniform-Cost), Breadth-First Search (BFS), Greedy Best-First Search, and Depth-First Search (DFS).
+        </div>
+        
+        <!-- Benchmark Summary Table -->
+        <div class="table-responsive">
+          <table class="benchmark-table">
+            <thead>
+              <tr>
+                <th>Algorithm</th>
+                <th>Category</th>
+                <th>Evaluation Formula</th>
+                <th>Total Dist</th>
+                <th>Estimated Time</th>
+                <th>Nodes Expanded</th>
+                <th>Hops</th>
+                <th>Exec Time</th>
+                <th>Optimality</th>
+              </tr>
+            </thead>
+            <tbody id="benchmarkTableBody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="theory-grid">
+          <div class="theory-card">
+            <h4><i data-feather="help-circle"></i> Mathematical Formulation: f(n) = g(n) + h(n)</h4>
+            <p><strong>g(n)</strong> is the exact cost from start to node n. <strong>h(n)</strong> is the estimated heuristic to goal. When \(h(n) \le h^*(n)\) (admissible), A* is guaranteed to return the optimal shortest path.</p>
+          </div>
+          <div class="theory-card">
+            <h4><i data-feather="compass"></i> Euclidean vs. Manhattan Metric</h4>
+            <p>Euclidean \( \sqrt{\Delta x^2 + \Delta y^2} \) reflects continuous straight-line distance, while Manhattan \( |\Delta x| + |\Delta y| \) represents orthogonal grid corridor travel.</p>
+          </div>
+          <div class="theory-card">
+            <h4><i data-feather="zap"></i> Dijkstra vs. A*</h4>
+            <p>Dijkstra expands in concentric circles where \(h(n) = 0\), expanding significantly more nodes. A* biases its frontier towards the destination goal.</p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-modal-action" id="btnExportBenchmark">Export AISC Report</button>
+        <button class="btn-modal-close" id="btnCloseCompareBottom">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Campus Landmark Directory Modal / Drawer -->
+  <div class="modal-backdrop" id="directoryModal">
+    <div class="modal-dialog glass-panel directory-dialog">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <i data-feather="map"></i>
+          <h2>CAMPUS FACILITY ATLAS & LANDMARKS</h2>
+        </div>
+        <button class="modal-close-btn" id="btnCloseDirectory">
+          <i data-feather="x"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="directory-filter-row">
+          <input type="text" id="dirSearchInput" placeholder="Search AB1, AB2, Library, Sports, Cricket Ground..." class="custom-input">
+          <div class="category-filter-pills">
+            <button class="cat-pill active" data-cat="all">All Places</button>
+            <button class="cat-pill" data-cat="academic">Academic Blocks</button>
+            <button class="cat-pill" data-cat="sports">Sports Precinct</button>
+            <button class="cat-pill" data-cat="life">Student Life & Food</button>
+            <button class="cat-pill" data-cat="transit">Gates & Parking</button>
+          </div>
+        </div>
+        <div class="directory-grid" id="directoryGrid">
+          <!-- Dynamically populated cards -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Script Imports -->
+  <script src="/static/js/map.js"></script>
+  <script src="/static/js/app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      feather.replace();
+    });
+  </script>
+</body>
+</html>

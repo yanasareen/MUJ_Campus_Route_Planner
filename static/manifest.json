@@ -1,0 +1,17 @@
+{
+  "name": "Smart Campus AI Route Planner",
+  "short_name": "Campus Planner",
+  "description": "Tactical AI Navigation & Heuristic Route Planner for Campus",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#090d16",
+  "theme_color": "#090d16",
+  "icons": [
+    {
+      "src": "/static/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
