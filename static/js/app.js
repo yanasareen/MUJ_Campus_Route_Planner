@@ -1,5 +1,5 @@
 /**
- * Apex Smart Campus Route Planner — Interactive Application Controller
+ * MUJ Campus Route Planner — Interactive Application Controller
  * Handles 6 AI Search Algorithms, GN & HN For Every Location,
  * Responsive Multi-Run Replayability, and Unified Single-Scroll Layout.
  */
@@ -997,9 +997,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const startName = state.campusData.nodes[state.startNode].name;
       const goalName = state.campusData.nodes[state.goalNode].name;
       
-      let report = `# AI PROJECT: SMART CAMPUS ROUTE PLANNER\n`;
+      let report = `# AI PROJECT: MUJ CAMPUS ROUTE PLANNER\n`;
       report += `## Benchmark Evaluation Report (6 Algorithms)\n`;
-      report += `- Campus: Apex Institute of Technology & Science (AITS)\n`;
+      report += `- Campus: Manipal University Jaipur (MUJ)\n`;
       report += `- Origin: ${startName} (Floor ${state.startFloor})\n`;
       report += `- Destination: ${goalName} (Floor ${state.goalFloor})\n`;
       report += `- Generated: ${new Date().toISOString()}\n\n`;
@@ -1026,7 +1026,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `AISC_Campus_Route_Report_${state.startNode}_to_${state.goalNode}.md`;
+      a.download = `MUJ_Campus_Route_Report_${state.startNode}_to_${state.goalNode}.md`;
       a.click();
       URL.revokeObjectURL(url);
     });

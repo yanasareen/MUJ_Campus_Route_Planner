@@ -1,6 +1,6 @@
 """
-Flask Web Application for AI Smart Campus Route Planner
-Apex Institute of Technology & Science (AITS)
+Flask Web Application for MUJ Campus Route Planner
+Manipal University Jaipur (MUJ)
 """
 
 import os
@@ -22,8 +22,8 @@ def get_campus_data():
         "edges": CAMPUS_EDGES,
         "total_nodes": len(CAMPUS_NODES),
         "total_edges": len(CAMPUS_EDGES),
-        "campus_name": "Apex Institute of Technology & Science",
-        "campus_code": "AITS-CAMPUS"
+        "campus_name": "Manipal University Jaipur (MUJ)",
+        "campus_code": "MUJ-CAMPUS"
     })
 
 @app.route("/api/route", methods=["POST"])
@@ -132,7 +132,7 @@ if __name__ == "__main__":
     threading.Timer(1.2, lambda: webbrowser.open(url)).start()
     
     print(f"\n=======================================================")
-    print(f"  🚀 Apex Smart Campus AI Route Planner is Live!")
+    print(f"  🚀 MUJ Campus Route Planner is Live!")
     print(f"  👉 Opening in Browser: {url}")
     print(f"=======================================================\n")
     app.run(host="0.0.0.0", port=target_port, debug=False)

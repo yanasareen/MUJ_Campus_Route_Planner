@@ -1,6 +1,6 @@
 """
 Campus Knowledge Graph & Architectural Blueprint
-Apex Institute of Technology & Science (AITS)
+Manipal University Jaipur (MUJ)
 Includes exact user landmarks:
 - AB1, AB2, AB3, AB4 (Academic Blocks 1-4 with detailed 3-floor architectural maps)
 - Incubation Center
@@ -384,7 +384,7 @@ CAMPUS_NODES: Dict[str, Dict[str, Any]] = {
 
     "SEMINAR_HALLS": {
         "id": "SEMINAR_HALLS",
-        "name": "Apex Executive Seminar Halls Complex",
+        "name": "MUJ Executive Seminar Halls Complex",
         "short_name": "Seminar Halls",
         "category": "academic",
         "zone": "Central South Core",
@@ -532,7 +532,7 @@ CAMPUS_NODES: Dict[str, Dict[str, Any]] = {
     },
     "AUDITORIUM": {
         "id": "AUDITORIUM",
-        "name": "Apex University Grand Auditorium",
+        "name": "MUJ Grand Auditorium",
         "short_name": "Auditorium",
         "category": "life",
         "zone": "East Cultural Wing",

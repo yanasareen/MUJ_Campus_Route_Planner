@@ -3,7 +3,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$DIR"
 
 echo "==========================================================="
-echo "  🚀 Apex Smart Campus AI Route Planner"
+echo "  🚀 MUJ Campus Route Planner (Manipal University Jaipur)"
 echo "==========================================================="
 
 # Check if port 5001 is already running

@@ -1,7 +1,7 @@
 {
-  "name": "Smart Campus AI Route Planner",
-  "short_name": "Campus Planner",
-  "description": "Tactical AI Navigation & Heuristic Route Planner for Campus",
+  "name": "MUJ Campus Route Planner",
+  "short_name": "MUJ Planner",
+  "description": "Tactical AI Navigation & Heuristic Route Planner for Manipal University Jaipur (MUJ)",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#090d16",

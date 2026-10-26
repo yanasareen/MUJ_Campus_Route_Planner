@@ -1,6 +1,6 @@
 """
-Search Algorithms Engine for Smart Campus Route Planner
-Apex Institute of Technology & Science (AITS)
+Search Algorithms Engine for MUJ Campus Route Planner
+Manipal University Jaipur (MUJ)
 AI & Soft Computing Core
 
 Supported 6 Algorithms:

@@ -1,5 +1,5 @@
 /**
- * Apex Smart Campus — Tactical Vector Canvas Map Engine
+ * MUJ Campus Route Planner — Tactical Vector Canvas Map Engine
  * Robust Multi-Run Animation Engine:
  * - Bulletproof animation loop with try/catch recovery (never dies or freezes)
  * - Safe frontier exploration interval cancellation on route changes

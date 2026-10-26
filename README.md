@@ -1,7 +1,7 @@
-# 🧭 Apex Smart Campus Route Planner
-### AI & Soft Computing (AISC) Course Project
+# 🧭 MUJ Campus Route Planner
+### Manipal University Jaipur — AI & Soft Computing (AISC) Course Project
 
-An interactive, game-based smart campus navigation and live GPS tracking web application built from scratch with **Python (Flask)**, **HTML5 Vector Canvas**, and **Tactical Glassmorphism UI**.
+An interactive, game-based smart campus navigation and live GPS tracking web application for **Manipal University Jaipur (MUJ)** built from scratch with **Python (Flask)**, **HTML5 Vector Canvas**, and **Tactical Glassmorphism UI**.
 
 ---
 
