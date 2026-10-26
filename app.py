@@ -4,11 +4,22 @@ Manipal University Jaipur (MUJ)
 """
 
 import os
+import sys
+
+# Support running when helper modules and assets are in 'extras/'
+_base_dir = os.path.dirname(os.path.abspath(__file__))
+_extras_dir = os.path.join(_base_dir, "extras")
+if os.path.isdir(_extras_dir) and _extras_dir not in sys.path:
+    sys.path.insert(0, _extras_dir)
+
+_template_folder = os.path.join(_extras_dir, "templates") if os.path.isdir(os.path.join(_extras_dir, "templates")) else "templates"
+_static_folder = os.path.join(_extras_dir, "static") if os.path.isdir(os.path.join(_extras_dir, "static")) else "static"
+
 from flask import Flask, render_template, jsonify, request
 from campus_graph import CAMPUS_NODES, CAMPUS_EDGES, ADJACENCY_GRAPH
 import search_algorithms
 
-app = Flask(__name__, static_folder="static", template_folder="templates")
+app = Flask(__name__, static_folder=_static_folder, template_folder=_template_folder)
 
 @app.route("/")
 def index():
